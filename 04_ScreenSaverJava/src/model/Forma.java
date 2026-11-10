@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 public abstract class Forma {
-    // Encapsulamento: atributos privados
     private int x;
     private int y;
     private int largura;
@@ -17,10 +16,10 @@ public abstract class Forma {
     public Forma(int x, int y, int largura, int altura, Color cor) {
         this.x = x;
         this.y = y;
-        setLargura(largura); // Usa o setter para aproveitar a validação
+        setLargura(largura);
         setAltura(altura);
         this.cor = cor;
-        this.velocidadeX = 5; // Velocidade padrão do protetor de tela
+        this.velocidadeX = 5; 
         this.velocidadeY = 5;
     }
 
@@ -30,7 +29,6 @@ public abstract class Forma {
         setX(getX() + getVelocidadeX());
         setY(getY() + getVelocidadeY());
 
-        // Mantendo a lógica base do protetor de tela (rebatendo nas bordas)
         if (getX() < 0 || getX() + getLargura() > larguraTela) {
             setVelocidadeX(getVelocidadeX() * -1);
         }
@@ -39,14 +37,18 @@ public abstract class Forma {
         }
     }
 
-    // Método de detecção de colisão por Bounding Box
     public boolean intersects(Forma outra) {
         Rectangle minhaCaixa = new Rectangle(this.getX(), this.getY(), this.getLargura(), this.getAltura());
         Rectangle outraCaixa = new Rectangle(outra.getX(), outra.getY(), outra.getLargura(), outra.getAltura());
         return minhaCaixa.intersects(outraCaixa);
     }
 
-    // Getters e Setters
+    // NOVO: Método polimórfico para tratar colisões.
+    // Por padrão, uma forma genérica não faz nada ao ser tocada pelo pássaro.
+    public void aoColidir(Passaro passaro) {
+        // Vazio de propósito
+    }
+
     public int getX() { return x; }
     public void setX(int x) { this.x = x; }
 
@@ -55,16 +57,12 @@ public abstract class Forma {
 
     public int getLargura() { return largura; }
     public void setLargura(int largura) {
-        if (largura > 0) { // Validação
-            this.largura = largura;
-        }
+        if (largura > 0) this.largura = largura;
     }
 
     public int getAltura() { return altura; }
     public void setAltura(int altura) {
-        if (altura > 0) { // Validação
-            this.altura = altura;
-        }
+        if (altura > 0) this.altura = altura;
     }
 
     public int getVelocidadeX() { return velocidadeX; }
