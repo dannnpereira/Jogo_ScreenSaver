@@ -1,12 +1,12 @@
 package view;
-import model.Circulo;
-import model.Elipse;
+
 import model.Forma;
-import model.Quadrado;
-import model.Retangulo;
+import model.Personagem; // <-- Novo import!
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.Color;
@@ -19,7 +19,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-
 public class ScreenSaver extends JFrame {
 
     private static final int CANVAS_WIDTH = 800;
@@ -29,26 +28,20 @@ public class ScreenSaver extends JFrame {
     private ScreenSaverPanel canvas;
 
     public ScreenSaver() {
-        super("Protetor de Tela - Demonstração de POO");
+        super("Jogo - Flappy Bird (Base POO)");
 
         this.canvas = new ScreenSaverPanel();
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setContentPane(canvas);
-
-        // Usamos pack() para que a área útil desenhável seja rigorosamente 800x600,
-        // sem ser reduzida pela borda ou barra de título da janela.
         this.pack();
-
         this.setLocationRelativeTo(null);
     }
 
     public void start() {
         this.setVisible(true);
         this.canvas.startAnimation();
-        
-        // Transfere o foco do teclado para o canvas assim que a janela abre
         this.canvas.requestFocusInWindow();
     }
 
@@ -59,14 +52,7 @@ public class ScreenSaver extends JFrame {
         /*********************************
         ** ↓ Declare suas formas aqui ↓ **
         *********************************/
-        Retangulo r;
-        Quadrado s;
-        Elipse elipse;
-        Circulo c;
-
-
-
-        
+        private List<Forma> formas = new ArrayList<>();
 
         // Flags para rastrear teclas pressionadas
         private boolean space = false;
@@ -77,51 +63,35 @@ public class ScreenSaver extends JFrame {
 
         public ScreenSaverPanel() {
             this.setPreferredSize(new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT));
-            this.setBackground(Color.BLACK);
-
-            //Habilita o JPanel a receber foco para capturar eventos de teclado
+            // Fundo azul céu para o Flappy Bird
+            this.setBackground(new Color(135, 206, 235));
             this.setFocusable(true);
 
-            // Mapeamento de teclas
             this.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                    // Quando a tecla é pressionada, ativamos a flag
-                    if (e.getKeyCode() == KeyEvent.VK_SPACE)
-                        space = true;
-                    if (e.getKeyCode() == KeyEvent.VK_UP)
-                        up = true;
-                    if (e.getKeyCode() == KeyEvent.VK_DOWN)
-                        down = true;
-                    if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-                        right = true;
-                    if (e.getKeyCode() == KeyEvent.VK_LEFT)
-                        left = true;
+                    if (e.getKeyCode() == KeyEvent.VK_SPACE) space = true;
+                    if (e.getKeyCode() == KeyEvent.VK_UP) up = true;
+                    if (e.getKeyCode() == KeyEvent.VK_DOWN) down = true;
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT) right = true;
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT) left = true;
                 }
 
                 @Override
                 public void keyReleased(KeyEvent e) {
-                    // Quando a tecla é solta, desativamos a flag
-                    if (e.getKeyCode() == KeyEvent.VK_SPACE)
-                        space = false;
-                    if (e.getKeyCode() == KeyEvent.VK_UP)
-                        up = false;
-                    if (e.getKeyCode() == KeyEvent.VK_DOWN)
-                        down = false;
-                    if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-                        right = false;
-                    if (e.getKeyCode() == KeyEvent.VK_LEFT)
-                        left = false;
+                    if (e.getKeyCode() == KeyEvent.VK_SPACE) space = false;
+                    if (e.getKeyCode() == KeyEvent.VK_UP) up = false;
+                    if (e.getKeyCode() == KeyEvent.VK_DOWN) down = false;
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT) right = false;
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT) left = false;
                 }
             });
 
             /***********************************
             ** ↓ Instancie suas formas aqui ↓ **
             ***********************************/
-            r = new Retangulo(CANVAS_WIDTH, CANVAS_HEIGHT);       
-            s = new Quadrado(CANVAS_WIDTH, CANVAS_HEIGHT);
-            elipse = new Elipse(CANVAS_WIDTH, CANVAS_HEIGHT);
-            c = new Circulo(CANVAS_WIDTH, CANVAS_HEIGHT);
+            // Instancia apenas o nosso personagem usando a imagem padrão logo.png
+            formas.add(new Personagem(350, 250, 80, 80, "src/image/logo.png"));
 
             this.timer = new Timer(DELAY_MS, this);
         }
@@ -145,10 +115,9 @@ public class ScreenSaver extends JFrame {
             /******************************
             ** ↓ Mova suas formas aqui ↓ **
             ******************************/
-            r.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
-            s.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
-            elipse.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
-            c.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
+            for (Forma f : formas) {
+                f.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
 
             this.repaint();
         }
@@ -163,11 +132,9 @@ public class ScreenSaver extends JFrame {
             /*********************************
             ** ↓ Desenhe suas formas aqui ↓ **
             *********************************/
-            r.desenhar(g2d);
-            s.desenhar(g2d);
-            elipse.desenhar(g2d);
-            c.desenhar(g2d);
-
+            for (Forma f : formas) {
+                f.desenhar(g2d);
+            }
         }
     }
 }
