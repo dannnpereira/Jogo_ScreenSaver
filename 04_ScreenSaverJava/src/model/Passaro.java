@@ -1,10 +1,11 @@
 package model;
 
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+
 public class Passaro extends Personagem {
     private int gravidade = 1;
     private int forcaPulo = -10;
-    
-    // NOVO: Adicionado estado de vida
     private boolean vivo = true; 
     
     public Passaro(int x, int y, int largura, int altura, String caminhoImagem) {
@@ -14,14 +15,12 @@ public class Passaro extends Personagem {
     }
 
     public void pular() {
-        if (vivo) { // Só pula se estiver vivo
-            setVelocidadeY(forcaPulo);
-        }
+        if (vivo) setVelocidadeY(forcaPulo);
     }
 
     @Override
     public void Mover(int larguraTela, int alturaTela) {
-        if (!vivo) return; // Se morreu, a gravidade e o movimento param
+        if (!vivo) return;
 
         setVelocidadeY(getVelocidadeY() + gravidade);
         setY(getY() + getVelocidadeY());
@@ -31,12 +30,29 @@ public class Passaro extends Personagem {
             setVelocidadeY(0);
         }
         
-        // NOVO: O pássaro morre ao bater no chão
         if (getY() + getAltura() >= alturaTela) {
             setY(alturaTela - getAltura());
             setVelocidadeY(0);
             setVivo(false);
         }
+    }
+
+    @Override
+    public void desenhar(Graphics2D g) {
+        // Salva a configuração atual da tela
+        AffineTransform configuracaoAntiga = g.getTransform();
+        
+        // Calcula a inclinação (limita entre virado para cima e bico para baixo)
+        double angulo = Math.toRadians(Math.max(-45, Math.min(getVelocidadeY() * 4, 90)));
+        
+        // Rotação centralizada no meio do pássaro
+        g.rotate(angulo, getX() + (getLargura() / 2.0), getY() + (getAltura() / 2.0));
+        
+        // Pinta a imagem rotacionada
+        super.desenhar(g);
+        
+        // Restaura a tela para não girar os outros elementos (como os canos)
+        g.setTransform(configuracaoAntiga);
     }
 
     public boolean isVivo() { return vivo; }

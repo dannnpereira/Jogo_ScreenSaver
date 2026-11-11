@@ -3,8 +3,10 @@ package view;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,19 +14,23 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import model.Cano;
 import model.Forma;
+import model.Nuvem;
 import model.Passaro;
 
 public class ScreenSaver extends JFrame {
 
     private static final int CANVAS_WIDTH = 800;
     private static final int CANVAS_HEIGHT = 600;
+    private static final int CHAO_ALTURA = 40; // Novo: Altura do chão
     private static final int DELAY_MS = 16; 
 
     private ScreenSaverPanel canvas;
@@ -49,32 +55,44 @@ public class ScreenSaver extends JFrame {
 
         private Timer timer;
         private List<Forma> formas = new ArrayList<>();
+        private List<Forma> nuvens = new ArrayList<>(); // Lista separada para as nuvens de fundo
+        
         private Passaro jogador;
+        private Image logo;
+        
         private boolean up = false;
         private boolean puloPronto = true;
         
-        // Variáveis de Jogo
         private int contadorFrames = 0; 
         private int pontuacao = 0;
         private int recorde = 0;
-        private int meiosPontos = 0; // Para contar 1 ponto apenas a cada 2 canos (cima e baixo)
-        private int velocidadeGlobal = -4; // Inicia em -4 e vai diminuindo (ficando mais rápido para a esquerda)
+        private int meiosPontos = 0; 
+        private int velocidadeGlobal = -4; 
+        
+        private boolean jogoIniciado = false; // Estado Inicial
         private boolean gameOver = false;
 
         public ScreenSaverPanel() {
             this.setPreferredSize(new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT));
-            this.setBackground(new Color(135, 206, 235));
             this.setFocusable(true);
+
+            // Tenta carregar a imagem do Logo
+            try {
+                logo = ImageIO.read(new File("src/image/logo.png"));
+            } catch (Exception e) {
+                logo = null;
+            }
+
+            // Inicializa as nuvens de fundo
+            nuvens.add(new Nuvem(100, 80, 120, 60, -1));
+            nuvens.add(new Nuvem(450, 120, 150, 75, -2));
+            nuvens.add(new Nuvem(700, 50, 100, 50, -1));
 
             this.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_W) {
-                        if (gameOver && puloPronto) { // puloPronto impede de reiniciar no instante em que morre
-                            reiniciarJogo();
-                        } else {
-                            up = true;
-                        }
+                        acaoPular();
                     }
                 }
                 @Override
@@ -85,21 +103,30 @@ public class ScreenSaver extends JFrame {
 
             this.addMouseListener(new MouseAdapter() {
                 @Override
-                public void mousePressed(MouseEvent e) { 
-                    if (gameOver && puloPronto) reiniciarJogo();
-                    else up = true; 
-                }
+                public void mousePressed(MouseEvent e) { acaoPular(); }
                 @Override
                 public void mouseReleased(MouseEvent e) { up = false; }
             });
 
-            reiniciarJogo();
+            reiniciarJogo(); // Prepara os dados, mas ainda não inicia
             this.timer = new Timer(DELAY_MS, this);
+        }
+
+        private void acaoPular() {
+            if (!jogoIniciado) {
+                jogoIniciado = true;
+                up = true;
+            } else if (gameOver && puloPronto) {
+                reiniciarJogo();
+                jogoIniciado = true; 
+            } else {
+                up = true;
+            }
         }
 
         private void reiniciarJogo() {
             formas.clear();
-            jogador = new Passaro(100, 250, 60, 45, "src/image/flipbird.png");
+            jogador = new Passaro(150, 250, 50, 35, "src/image/flipbird.png");
             formas.add(jogador);
             
             pontuacao = 0;
@@ -107,17 +134,18 @@ public class ScreenSaver extends JFrame {
             velocidadeGlobal = -4;
             contadorFrames = 0;
             gameOver = false;
-            puloPronto = false; // Exige soltar o botão antes de jogar novamente
+            puloPronto = false; 
             up = false;
         }
 
         private void gerarParDeCanos() {
             int espacoAbertura = 160; 
             int larguraCano = 70;
-            int alturaCanoCima = 50 + (int)(Math.random() * 300);
+            // Altura aleatória respeitando o chão
+            int alturaCanoCima = 50 + (int)(Math.random() * (CANVAS_HEIGHT - CHAO_ALTURA - espacoAbertura - 100));
             
             Cano canoCima = new Cano(CANVAS_WIDTH, 0, larguraCano, alturaCanoCima, velocidadeGlobal);
-            Cano canoBaixo = new Cano(CANVAS_WIDTH, alturaCanoCima + espacoAbertura, larguraCano, CANVAS_HEIGHT - alturaCanoCima - espacoAbertura, velocidadeGlobal);
+            Cano canoBaixo = new Cano(CANVAS_WIDTH, alturaCanoCima + espacoAbertura, larguraCano, CANVAS_HEIGHT - CHAO_ALTURA - alturaCanoCima - espacoAbertura, velocidadeGlobal);
             
             formas.add(canoCima);
             formas.add(canoBaixo);
@@ -132,11 +160,16 @@ public class ScreenSaver extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             
-            if (!up) puloPronto = true; // Botão solto, prepara o próximo pulo
+            if (!up) puloPronto = true; 
 
-            if (gameOver) {
+            // As nuvens sempre se movem (mesmo na tela de título ou Game Over)
+            for (Forma n : nuvens) {
+                n.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
+
+            if (!jogoIniciado || gameOver) {
                 this.repaint();
-                return; // Congela a física do jogo
+                return;
             }
 
             if (up && puloPronto) {
@@ -144,9 +177,8 @@ public class ScreenSaver extends JFrame {
                 puloPronto = false;
             }
 
-            // Acelera a geração de canos conforme o jogo fica mais rápido
             contadorFrames++;
-            int limiteFrames = 100 + (velocidadeGlobal * 3); // Quanto mais negativo, menor o limite (nasce mais rápido)
+            int limiteFrames = 100 + (velocidadeGlobal * 3); 
             if (contadorFrames >= limiteFrames) {
                 gerarParDeCanos();
                 contadorFrames = 0;
@@ -154,21 +186,19 @@ public class ScreenSaver extends JFrame {
 
             for (int i = formas.size() - 1; i >= 0; i--) {
                 Forma f = formas.get(i);
-                f.Mover(CANVAS_WIDTH, CANVAS_HEIGHT);
+                
+                // Mover respeitando a altura do chão
+                f.Mover(CANVAS_WIDTH, CANVAS_HEIGHT - CHAO_ALTURA);
                 
                 if (f != jogador) {
                     if (jogador.intersects(f)) f.aoColidir(jogador);
                     
-                    // Pontuação genérica (funciona para qualquer forma que passe da tela)
                     if (!f.isUltrapassada() && f.getX() + f.getLargura() < jogador.getX()) {
                         f.setUltrapassada(true);
                         meiosPontos++;
-                        
-                        if (meiosPontos % 2 == 0) { // A cada par (cima e baixo), ganha 1 ponto
+                        if (meiosPontos % 2 == 0) { 
                             pontuacao++;
-                            if (pontuacao % 5 == 0) {
-                                velocidadeGlobal--; // Aumenta a velocidade do jogo a cada 5 pontos
-                            }
+                            if (pontuacao % 5 == 0) velocidadeGlobal--; 
                         }
                     }
 
@@ -176,7 +206,6 @@ public class ScreenSaver extends JFrame {
                 }
             }
 
-            // Verifica se o Game Over foi ativado
             if (!jogador.isVivo()) {
                 gameOver = true;
                 if (pontuacao > recorde) recorde = pontuacao;
@@ -191,25 +220,57 @@ public class ScreenSaver extends JFrame {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             
+            // 1. Fundo Degradê (Céu)
+            GradientPaint ceu = new GradientPaint(0, 0, new Color(135, 206, 235), 0, CANVAS_HEIGHT, new Color(255, 255, 255));
+            g2d.setPaint(ceu);
+            g2d.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // 2. Desenha Nuvens de Fundo
+            for (Forma n : nuvens) { n.desenhar(g2d); }
+
+            // 3. Desenha Formas Ativas (Canos e Pássaro)
             for (Forma f : formas) { f.desenhar(g2d); }
 
-            // Desenha a Interface Visual (HUD)
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 24));
-            g2d.drawString("Pontos: " + pontuacao, 20, 40);
-            g2d.drawString("Recorde: " + recorde, 20, 70);
+            // 4. Desenha o Chão
+            g2d.setColor(new Color(222, 184, 135)); // Cor Areia
+            g2d.fillRect(0, CANVAS_HEIGHT - CHAO_ALTURA, CANVAS_WIDTH, CHAO_ALTURA);
+            g2d.setColor(new Color(34, 139, 34)); // Grama no topo do chão
+            g2d.fillRect(0, CANVAS_HEIGHT - CHAO_ALTURA, CANVAS_WIDTH, 8);
 
-            if (gameOver) {
-                g2d.setColor(new Color(0, 0, 0, 150));
-                g2d.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Tela escurecida
-                
-                g2d.setColor(Color.RED);
-                g2d.setFont(new Font("Arial", Font.BOLD, 60));
-                g2d.drawString("GAME OVER", 200, 250);
-                
-                g2d.setColor(Color.WHITE);
+            // 5. HUD e Telas
+            if (!jogoIniciado) {
+                if (logo != null) {
+                    g2d.drawImage(logo, (CANVAS_WIDTH - 250) / 2, 100, 250, 100, null);
+                }
+                g2d.setColor(Color.DARK_GRAY);
+                g2d.setFont(new Font("Arial", Font.BOLD, 40));
+                g2d.drawString("FLAPPY BIRD", 270, 280);
                 g2d.setFont(new Font("Arial", Font.BOLD, 20));
-                g2d.drawString("Pressione ESPAÇO para reiniciar", 230, 320);
+                g2d.drawString("Clique ou pressione ESPAÇO para Começar", 195, 340);
+                
+            } else {
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 26));
+                g2d.drawString("Pontos: " + pontuacao, 20, 40);
+                g2d.drawString("Recorde: " + recorde, 20, 70);
+                
+                // Texto sobreposto branco para dar destaque
+                g2d.setColor(Color.WHITE);
+                g2d.drawString("Pontos: " + pontuacao, 18, 38);
+                g2d.drawString("Recorde: " + recorde, 18, 68);
+
+                if (gameOver) {
+                    g2d.setColor(new Color(0, 0, 0, 150));
+                    g2d.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
+                    
+                    g2d.setColor(Color.RED);
+                    g2d.setFont(new Font("Arial", Font.BOLD, 60));
+                    g2d.drawString("GAME OVER", 200, 250);
+                    
+                    g2d.setColor(Color.WHITE);
+                    g2d.setFont(new Font("Arial", Font.BOLD, 20));
+                    g2d.drawString("Pressione ESPAÇO para reiniciar", 230, 320);
+                }
             }
         }
     }

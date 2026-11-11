@@ -1,198 +1,81 @@
-![senai_logo](./src/image/logo.png)
+# Flappy Bird POO - Mini Projeto 04
 
-# ScreenSaver – Projeto Base para Programação Orientada a Objetos
+Projeto desenvolvido para a disciplina de Programação Orientada a Objetos, utilizando Java e Swing, sob a orientação do Prof. Caina Antunes. Transformamos a base de um "ScreenSaver" em um jogo completo estilo Flappy Bird, aplicando rigorosamente os quatro pilares da POO.
 
-## Objetivo
+**Desenvolvido por:** Lívia e Danilo
 
-Este projeto tem como objetivo servir de base para o estudo dos pilares da Programação Orientada a Objetos (POO): **encapsulamento, abstração, herança e polimorfismo**.
+---
 
-A aplicação consiste em um protetor de tela simples utilizando Java Swing. A classe `ScreenSaver` fornece toda a infraestrutura da aplicação (janela, painel, timer, renderização e captura do teclado). O desenvolvimento do projeto concentra-se na implementação das classes do pacote `model` e na integração dessas classes com os pontos demarcados em `ScreenSaver.java`.
+## 🏗️ Os 4 Pilares da POO no Projeto
 
-## Estrutura do Projeto
+| Pilar | Onde está no código? | Como foi aplicado? |
+| :--- | :--- | :--- |
+| **Abstração** | Classe `model.Forma` | Criamos uma classe abstrata genérica que define os atributos e métodos base (x, y, `Mover`, `desenhar`) para tudo o que aparece na tela, sem se preocupar com os detalhes de desenho de cada forma específica. |
+| **Encapsulamento** | Todas as classes do `model` | Todos os atributos (`x`, `y`, `velocidade`, `vivo`) são `private`. O acesso é feito via Getters e Setters, permitindo validações (ex: impedir largura negativa) e protegendo a física do jogo de alterações indevidas. |
+| **Herança** | `Passaro`, `Cano`, `Nuvem` | `Passaro` estende `Personagem`, herdando a capacidade de desenhar sprites. `Cano` estende `Retangulo`. Evitamos repetição de código reutilizando a estrutura visual já existente e adicionando apenas comportamentos novos (como a gravidade). |
+| **Polimorfismo** | `ScreenSaver.java` e `aoColidir()` | No Game Loop, usamos uma única lista `List<Forma>` genérica. Chamamos `Mover()` e `desenhar()` sem precisar saber se é um pássaro, nuvem ou cano. O método `aoColidir()` é reescrito (`@Override`): canos dão Game Over, nuvens não fazem nada. |
+
+---
+
+## 📊 Diagrama de Classes (Mermaid)
 
 ```mermaid
-treeView-beta
-src
-├── App.java
-├── model
-│   ├── Forma.java
-│   ├── Retangulo.java
-│   ├── Circulo.java
-│   └── ...
-└── view
-    └── ScreenSaver.java
-```
+classDiagram
+    direction TB
 
-## Localizando os pontos de implementação
-
-### 1. Declaração das formas
-
-```java
-/*********************************
-** ↓ Declare suas formas aqui ↓ **
-*********************************/
-```
-
-Declare todos os atributos das formas.
-
-```java
-private Retangulo jogador;
-private Circulo bola;
-```
-
-### 2. Instanciação das formas
-
-```java
-/***********************************
-** ↓ Instancie suas formas aqui ↓ **
-***********************************/
-```
-
-Crie os objetos.
-
-```java
-jogador = new Retangulo(...);
-bola = new Circulo(...);
-```
-
-### 3. Movimentação das formas
-
-```java
-/******************************
-** ↓ Mova suas formas aqui ↓ **
-******************************/
-```
-
-Este trecho é executado a cada atualização da animação.
-
-Movimento automático:
-
-```java
-bola.mover();
-```
-
-Movimento por teclado:
-
-```java
-if(right){
-    jogador.setX(jogador.getX()+5);
-}
-```
-
-Também é o local indicado para colisões e regras da aplicação.
-
-### 4. Desenho das formas
-
-```java
-/*********************************
-** ↓ Desenhe suas formas aqui ↓ **
-*********************************/
-```
-
-```java
-jogador.desenhar(g2d);
-bola.desenhar(g2d);
-```
-
-## Fluxo da aplicação
-
-```text
-Declarar objetos
-        ↓
-Instanciar objetos
-        ↓
-Movimentar objetos
-        ↓
-Desenhar objetos
-        ↓
-Repaint
-```
-
-## Classe base
-
-```java
-public abstract class Forma{
-    protected int x;
-    protected int y;
-
-    public abstract void desenhar(Graphics2D g2d);
-
-    public void mover(){}
-}
-```
-
-As classes `Retangulo`, `Circulo` e outras devem herdar de `Forma` e sobrescrever `desenhar()`.
-
-## Exemplo de movimento automático
-
-```java
-public void mover(){
-    x += velocidadeX;
-    if(x<0 || x>760){
-        velocidadeX *= -1;
+    class Forma {
+        <<abstract>>
+        -int x
+        -int y
+        -int largura
+        -int altura
+        -boolean ultrapassada
+        +Forma(...)
+        +desenhar(Graphics2D g)* void
+        +Mover(int larguraTela, int alturaTela) void
+        +intersects(Forma outra) boolean
+        +aoColidir(Passaro passaro) void
     }
-}
-```
 
-## Utilização do teclado
+    class Retangulo {
+        +desenhar(Graphics2D g) void
+    }
+    
+    class Cano {
+        +Cano(...)
+        +Mover(int larguraTela, int alturaTela) void
+        +desenhar(Graphics2D g) void
+        +aoColidir(Passaro passaro) void
+    }
 
-Flags existentes:
+    class Elipse {
+        +desenhar(Graphics2D g) void
+    }
+    
+    class Nuvem {
+        +Nuvem(...)
+        +Mover(int larguraTela, int alturaTela) void
+        +aoColidir(Passaro passaro) void
+    }
 
-- `space`
-- `up`
-- `down`
-- `left`
-- `right`
+    class Personagem {
+        -Image sprite
+        +Personagem(...)
+        +desenhar(Graphics2D g) void
+    }
+    
+    class Passaro {
+        -int gravidade
+        -boolean vivo
+        +Passaro(...)
+        +pular() void
+        +Mover(int larguraTela, int alturaTela) void
+        +desenhar(Graphics2D g) void
+    }
 
-Adicionar nova tecla:
-
-```java
-private boolean teclaA=false;
-```
-
-```java
-if(e.getKeyCode()==KeyEvent.VK_A)
-    teclaA=true;
-```
-
-```java
-if(e.getKeyCode()==KeyEvent.VK_A)
-    teclaA=false;
-```
-
-Utilização:
-
-```java
-if(teclaA){
-    // ação
-}
-```
-
-Qualquer constante `KeyEvent.VK_*` pode ser utilizada.
-
-## Utilizando imagens
-
-```java
-BufferedImage imagem =
-ImageIO.read(getClass().getResource("/images/personagem.png"));
-```
-
-```java
-g2d.drawImage(imagem,x,y,largura,altura,null);
-```
-
-## Utilizando sons
-
-```java
-AudioInputStream audio =
-AudioSystem.getAudioInputStream(
-getClass().getResource("/audio/pulo.wav"));
-
-Clip clip=AudioSystem.getClip();
-clip.open(audio);
-clip.start();
-```
-
-## Desafio Final
-
-Utilize este projeto como base para desenvolver um jogo simples, como Pong, Snake, Breakout ou Space Shooter, reaproveitando toda a infraestrutura de janela, renderização, animação e entrada de teclado fornecida pela classe `ScreenSaver`.
+    Forma <|-- Retangulo : Herança
+    Retangulo <|-- Cano : Especialização
+    Forma <|-- Elipse : Herança
+    Elipse <|-- Nuvem : Especialização
+    Forma <|-- Personagem : Herança
+    Personagem <|-- Passaro : Especialização
