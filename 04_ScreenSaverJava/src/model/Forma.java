@@ -2,49 +2,55 @@ package model;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.Random;
+import java.awt.Rectangle;
 
 public abstract class Forma {
-    //Atributos
-    protected int x;
-    protected int y;
-    protected int speedx;
-    protected int speedy;
-    protected int width;
-    protected int height;
-    protected Color color;
-
-    //Construtor
-    public Forma(int ScreenWidth, int ScreenHeigth){
-        Random r = new Random();
-        width = r.nextInt(150) + 50;
-        height = r.nextInt(150) + 50;
-        x= r.nextInt(ScreenWidth-width);
-        y= r.nextInt(ScreenHeigth-height);
-        speedx = r.nextInt(5) + 1;
-        if(r.nextBoolean()){
-            speedx*= -1;
-        }
-        color = ColorGenerate();
-    }
+    private int x, y, largura, altura, velocidadeX, velocidadeY;
+    private Color cor;
     
-    //Métodos
-    private Color ColorGenerate(){
-        Random r = new Random();
-        return new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256));
+    // NOVO: Controla se a forma já foi ultrapassada pelo jogador (para contar pontos)
+    private boolean ultrapassada = false;
+
+    public Forma(int x, int y, int largura, int altura, Color cor) {
+        this.x = x; this.y = y;
+        setLargura(largura); setAltura(altura);
+        this.cor = cor;
+        this.velocidadeX = 5; this.velocidadeY = 5;
     }
-    public void Mover(int ScreenWidth, int ScreenHeigth){
-        if (x <= 0 || x >= ScreenWidth-width) {
-            speedx*= -1;
-            color = ColorGenerate();
-        }
-        if (y <= 0 || y>= ScreenHeigth-height) {
-            speedy*= -1;
-            color = ColorGenerate();
-        }
-        x += speedx;
-        y += speedy;
-    }
+
     public abstract void desenhar(Graphics2D g);
 
+    public void Mover(int larguraTela, int alturaTela) {
+        setX(getX() + getVelocidadeX());
+        setY(getY() + getVelocidadeY());
+
+        if (getX() < 0 || getX() + getLargura() > larguraTela) setVelocidadeX(getVelocidadeX() * -1);
+        if (getY() < 0 || getY() + getAltura() > alturaTela) setVelocidadeY(getVelocidadeY() * -1);
+    }
+
+    public boolean intersects(Forma outra) {
+        Rectangle minhaCaixa = new Rectangle(this.getX(), this.getY(), this.getLargura(), this.getAltura());
+        Rectangle outraCaixa = new Rectangle(outra.getX(), outra.getY(), outra.getLargura(), outra.getAltura());
+        return minhaCaixa.intersects(outraCaixa);
+    }
+
+    public void aoColidir(Passaro passaro) {}
+
+    // Getters e Setters
+    public int getX() { return x; }
+    public void setX(int x) { this.x = x; }
+    public int getY() { return y; }
+    public void setY(int y) { this.y = y; }
+    public int getLargura() { return largura; }
+    public void setLargura(int largura) { if (largura > 0) this.largura = largura; }
+    public int getAltura() { return altura; }
+    public void setAltura(int altura) { if (altura > 0) this.altura = altura; }
+    public int getVelocidadeX() { return velocidadeX; }
+    public void setVelocidadeX(int velocidadeX) { this.velocidadeX = velocidadeX; }
+    public int getVelocidadeY() { return velocidadeY; }
+    public void setVelocidadeY(int velocidadeY) { this.velocidadeY = velocidadeY; }
+    public Color getCor() { return cor; }
+    public void setCor(Color cor) { this.cor = cor; }
+    public boolean isUltrapassada() { return ultrapassada; }
+    public void setUltrapassada(boolean ultrapassada) { this.ultrapassada = ultrapassada; }
 }

@@ -1,14 +1,16 @@
 package model;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
-public class Retangulo extends Forma{
-    //Construtor
-    public Retangulo(int ScreenWidth, int ScreenHeigth){
-        super(ScreenWidth, ScreenHeigth);
-        
+
+public class Retangulo extends Forma {
+    public Retangulo(int x, int y, int largura, int altura, Color cor) {
+        super(x, y, largura, altura, cor);
     }
-    public void desenhar(Graphics2D g){
-        g.setColor(color);
-        g.fillRect(x, y, width, height);
+
+    @Override
+    public void desenhar(Graphics2D g) {
+        g.setColor(getCor());
+        g.fillRect(getX(), getY(), getLargura(), getAltura());
     }
 }
