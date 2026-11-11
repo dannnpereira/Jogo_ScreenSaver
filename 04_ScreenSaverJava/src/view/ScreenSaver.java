@@ -78,8 +78,7 @@ public class ScreenSaver extends JFrame {
                 public void mouseReleased(MouseEvent e) { up = false; }
             });
 
-            // Deixa apenas o pássaro na lista inicial
-            jogador = new Passaro(100, 250, 60, 45, "src/image/logo.png");
+            jogador = new Passaro(100, 250, 60, 45, "src/image/flipbird.png");
             formas.add(jogador);
 
             this.timer = new Timer(DELAY_MS, this);
