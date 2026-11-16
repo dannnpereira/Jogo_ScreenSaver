@@ -14,18 +14,17 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import audio.MusicaFundo;
 import model.Cano;
 import model.Forma;
 import model.Nuvem;
 import model.Passaro;
+import util.Recursos;
 
 public class ScreenSaver extends JFrame {
 
@@ -35,6 +34,7 @@ public class ScreenSaver extends JFrame {
     private static final int DELAY_MS = 16; 
 
     private ScreenSaverPanel canvas;
+    private MusicaFundo musica = new MusicaFundo();
 
     public ScreenSaver() {
         super("Jogo - Flappy Bird (Base POO)");
@@ -49,6 +49,7 @@ public class ScreenSaver extends JFrame {
     public void start() {
         this.setVisible(true);
         this.canvas.startAnimation();
+        this.musica.tocar();
         this.canvas.requestFocusInWindow();
     }
 
@@ -81,12 +82,7 @@ public class ScreenSaver extends JFrame {
             this.setPreferredSize(new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT));
             this.setFocusable(true);
 
-            try {
-                URL urlLogo = ScreenSaver.class.getResource("/image/logo.png");
-                logo = (urlLogo != null) ? ImageIO.read(urlLogo) : ImageIO.read(new File("src/image/logo.png"));
-            } catch (Exception e) {
-                logo = null;
-            }
+            logo = Recursos.carregarImagem("image/logo.png");
 
             /***********************************
             ** ↓ Instancie suas formas aqui ↓ **
@@ -100,6 +96,9 @@ public class ScreenSaver extends JFrame {
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_W) {
                         acaoPular();
+                    } else if (e.getKeyCode() == KeyEvent.VK_M) {
+                        musica.alternarMudo();
+                        repaint();
                     }
                 }
                 @Override
@@ -132,7 +131,7 @@ public class ScreenSaver extends JFrame {
 
         private void reiniciarJogo() {
             formas.clear();
-            jogador = new Passaro(150, 250, 52, 41, "image/flipbird.png");
+            jogador = new Passaro(150, 250, 48, 32, "image/flipbird.png");
             formas.add(jogador);
             
             pontuacao = 0;
@@ -252,6 +251,8 @@ public class ScreenSaver extends JFrame {
                 g2d.drawString("FLAPPY BIRD", 270, 280);
                 g2d.setFont(new Font("Arial", Font.BOLD, 20));
                 g2d.drawString("Clique ou pressione ESPAÇO para Começar", 195, 340);
+                g2d.setFont(new Font("Arial", Font.PLAIN, 16));
+                g2d.drawString("M: música " + (musica.isMudo() ? "desligada" : "ligada"), 330, 375);
                 
             } else {
                 g2d.setColor(Color.BLACK);

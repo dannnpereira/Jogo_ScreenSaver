@@ -6,6 +6,21 @@ Projeto desenvolvido para a disciplina de Programação Orientada a Objetos, uti
 
 ---
 
+## 🎮 Controles
+
+| Tecla | Ação |
+| :--- | :--- |
+| `ESPAÇO`, `↑`, `W` ou clique do mouse | Começar / pular / reiniciar após o Game Over |
+| `M` | Liga ou desliga a música de fundo |
+
+## 🎵 Música de Fundo e Física
+
+- **Música:** a classe `audio.MusicaFundo` gera uma melodia em MIDI (melodia, baixo e bateria) usando o sintetizador embutido do Java (`javax.sound.midi`), tocando em loop contínuo. Não é necessário nenhum arquivo de áudio.
+- **Gravidade leve:** o `Passaro` usa física em `double` (gravidade `0.4`, pulo `-7.0` e velocidade máxima de queda `8`), deixando o voo mais suave. Os valores podem ser ajustados nas constantes do topo da classe.
+- **Imagens:** a classe `util.Recursos` carrega as imagens pelo classpath (`bin/`) e, se não encontrar, pelas pastas `src/` ou `04_ScreenSaverJava/src/`, funcionando independente da pasta de onde o jogo é executado.
+
+---
+
 ## 🏗️ Os 4 Pilares da POO no Projeto
 
 | Pilar | Onde está no código? | Como foi aplicado? |
@@ -75,13 +90,29 @@ classDiagram
     }
     
     class Passaro {
-        -int gravidade
+        -double GRAVIDADE$
+        -double FORCA_PULO$
+        -double posY
+        -double velY
         -boolean vivo
         +Passaro(...)
         +pular() void
         +Mover(int larguraTela, int alturaTela) void
         +desenhar(Graphics2D g) void
         +morrer() void
+    }
+
+    class MusicaFundo {
+        -Sequencer sequencer
+        -boolean mudo
+        +tocar() void
+        +alternarMudo() void
+        +parar() void
+    }
+
+    class Recursos {
+        <<utility>>
+        +carregarImagem(String caminho)$ BufferedImage
     }
 
     Forma <|-- Retangulo : Herança
@@ -92,6 +123,7 @@ classDiagram
     Elipse <|-- Nuvem : Especialização
     Forma <|-- Personagem : Herança
     Personagem <|-- Passaro : Especialização
+    Personagem ..> Recursos : carrega sprite
 ```
 
 > **Observação:** `Quadrado` e `Circulo` vêm da base feita em aula (o protetor de tela) e foram mantidas na hierarquia, mas não são usadas no jogo. As classes `Nuvem`, `Cano` e `Passaro` são as que dão vida ao Flappy Bird.
