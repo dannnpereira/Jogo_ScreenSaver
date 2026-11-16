@@ -17,6 +17,7 @@ Projeto desenvolvido para a disciplina de Programação Orientada a Objetos, uti
 
 - **Música:** a classe `audio.MusicaFundo` gera uma melodia em MIDI (melodia, baixo e bateria) usando o sintetizador embutido do Java (`javax.sound.midi`), tocando em loop contínuo. Não é necessário nenhum arquivo de áudio.
 - **Gravidade leve:** o `Passaro` usa física em `double` (gravidade `0.4`, pulo `-7.0` e velocidade máxima de queda `8`), deixando o voo mais suave. Os valores podem ser ajustados nas constantes do topo da classe.
+- **Visual:** canos com "boca" na abertura, volume em degradê e sombra; nuvens fofas feitas de várias elipses; céu com sol, morros em parallax e chão com grama animada; placar centralizado com contorno e painel de Game Over com pontos, recorde e aviso de novo recorde.
 - **Imagens:** a classe `util.Recursos` carrega as imagens pelo classpath (`bin/`) e, se não encontrar, pelas pastas `src/` ou `04_ScreenSaverJava/src/`, funcionando independente da pasta de onde o jogo é executado.
 
 ---
@@ -62,6 +63,7 @@ classDiagram
     }
 
     class Cano {
+        -boolean emCima
         +Cano(...)
         +Mover(int larguraTela, int alturaTela) void
         +desenhar(Graphics2D g) void
@@ -97,6 +99,7 @@ classDiagram
         -boolean vivo
         +Passaro(...)
         +pular() void
+        +pairar(int y) void
         +Mover(int larguraTela, int alturaTela) void
         +desenhar(Graphics2D g) void
         +morrer() void
