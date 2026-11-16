@@ -24,6 +24,14 @@ public class Passaro extends Personagem {
         if (vivo) velY = FORCA_PULO;
     }
 
+    /** Faz o pássaro flutuar parado numa altura (usado na tela inicial). */
+    public void pairar(int y) {
+        posY = y;
+        velY = 0;
+        setY(y);
+        setVelocidadeY(0);
+    }
+
     @Override
     public void Mover(int larguraTela, int alturaTela) {
         if (!vivo) return;
