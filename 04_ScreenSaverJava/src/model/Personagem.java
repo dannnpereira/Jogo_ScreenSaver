@@ -3,8 +3,7 @@ package model;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.io.File;
-import javax.imageio.ImageIO;
+import util.Recursos;
 
 public class Personagem extends Forma {
     private Image sprite;
@@ -16,12 +15,7 @@ public class Personagem extends Forma {
     }
 
     private void carregarImagem(String caminho) {
-        try {
-            sprite = ImageIO.read(new File(caminho));
-        } catch (Exception e) {
-            System.out.println("Não foi possível carregar a imagem: " + caminho);
-            sprite = null;
-        }
+        sprite = Recursos.carregarImagem(caminho);
     }
 
     @Override

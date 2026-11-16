@@ -4,57 +4,67 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 
 public class Passaro extends Personagem {
-    private int gravidade = 1;
-    private int forcaPulo = -10;
-    private boolean vivo = true; 
-    
+    // Física em double para permitir uma gravidade "leve" (valores fracionários)
+    private static final double GRAVIDADE = 0.4;          // antes: 1 (mais pesado)
+    private static final double FORCA_PULO = -7.0;        // antes: -10
+    private static final double VELOCIDADE_MAX_QUEDA = 8; // limita a queda para não despencar
+
+    private double posY;
+    private double velY = 0;
+    private boolean vivo = true;
+
     public Passaro(int x, int y, int largura, int altura, String caminhoImagem) {
         super(x, y, largura, altura, caminhoImagem);
-        setVelocidadeX(0); 
+        this.posY = y;
+        setVelocidadeX(0);
         setVelocidadeY(0);
     }
 
     public void pular() {
-        if (vivo) setVelocidadeY(forcaPulo);
+        if (vivo) velY = FORCA_PULO;
     }
 
     @Override
     public void Mover(int larguraTela, int alturaTela) {
         if (!vivo) return;
 
-        setVelocidadeY(getVelocidadeY() + gravidade);
-        setY(getY() + getVelocidadeY());
+        velY = Math.min(velY + GRAVIDADE, VELOCIDADE_MAX_QUEDA);
+        posY += velY;
 
-        if (getY() < 0) {
-            setY(0);
-            setVelocidadeY(0);
+        if (posY < 0) {
+            posY = 0;
+            velY = 0;
         }
-        
-        if (getY() + getAltura() >= alturaTela) {
-            setY(alturaTela - getAltura());
-            setVelocidadeY(0);
-            setVivo(false);
+
+        if (posY + getAltura() >= alturaTela) {
+            posY = alturaTela - getAltura();
+            velY = 0;
+            morrer();
         }
+
+        // Sincroniza com os atributos inteiros herdados de Forma (usados na colisão)
+        setY((int) Math.round(posY));
+        setVelocidadeY((int) Math.round(velY));
     }
 
     @Override
     public void desenhar(Graphics2D g) {
         // Salva a configuração atual da tela
         AffineTransform configuracaoAntiga = g.getTransform();
-        
+
         // Calcula a inclinação (limita entre virado para cima e bico para baixo)
-        double angulo = Math.toRadians(Math.max(-45, Math.min(getVelocidadeY() * 4, 90)));
-        
+        double angulo = Math.toRadians(Math.max(-30, Math.min(velY * 6, 70)));
+
         // Rotação centralizada no meio do pássaro
         g.rotate(angulo, getX() + (getLargura() / 2.0), getY() + (getAltura() / 2.0));
-        
+
         // Pinta a imagem rotacionada
         super.desenhar(g);
-        
+
         // Restaura a tela para não girar os outros elementos (como os canos)
         g.setTransform(configuracaoAntiga);
     }
 
     public boolean isVivo() { return vivo; }
-    public void setVivo(boolean vivo) { this.vivo = vivo; }
+    public void morrer() { vivo = false; }
 }
